@@ -114,27 +114,6 @@ def test_prediction(index, W1, b1, W2, b2, show):
 
 #test_prediction(3, W1, b1, W2, b2, 1)
 
-'''
-while True:
-    user_input = input("Gib eine Zahl für den Index ein (oder 'exit' zum Beenden): ")
-
-    if user_input.lower() == "exit":
-        print("Programm beendet.")
-        break  # Schleife beenden
-
-    if not user_input.isdigit():
-        print("Bitte eine gültige Zahl eingeben!")
-        continue  # Schleife neu starten
-
-    index = int(user_input)
-
-    if index < 0 or index >= X_train.shape[1]:
-        print(f"Bitte eine Zahl zwischen 0 und {X_train.shape[1] - 1} eingeben!")
-        continue
-
-    test_prediction(index, W1, b1, W2, b2, 1)
-'''
-
 i = 0
 total = input("Prediction count: ")
 while not total.isdigit():
