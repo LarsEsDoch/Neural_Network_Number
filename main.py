@@ -123,7 +123,7 @@ right = 0
 wrong = 0
 wrongs = []
 print("Predictions \n")
-while i < total:
+for i in range(total):
     prediction, label = test_prediction(i, W1, b1, W2, b2, 0)
     if prediction == label:
         print("Right predicted")
