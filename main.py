@@ -112,9 +112,6 @@ def test_prediction(index, W1, b1, W2, b2, show):
     plt.show()
     return prediction, label
 
-#test_prediction(0, W1, b1, W2, b2)
-#test_prediction(1, W1, b1, W2, b2)
-#test_prediction(2, W1, b1, W2, b2)
 #test_prediction(3, W1, b1, W2, b2, 1)
 
 '''
