@@ -191,26 +191,30 @@ class UI:
 
 class PaintApp:
 
-    def __init__(self, root, neuralNetwork: NeuralNetwork):
-        self.root = root
+    def __init__(self, neuralNetwork: NeuralNetwork):
+        self.root = tk.Tk()
         self.neural_network = neuralNetwork
+
+        self.root.title("Detect Number")
 
         self.canvas_size = 280
         self.image_size = 28
 
-        self.canvas = tk.Canvas(root, width=self.canvas_size, height=self.canvas_size, bg="white")
+        self.canvas = tk.Canvas(self.root, width=self.canvas_size, height=self.canvas_size, bg="white")
         self.canvas.pack()
 
-        self.button_clear = tk.Button(root, text="Clear", command=self.clear_canvas)
+        self.button_clear = tk.Button(self.root, text="Clear", command=self.clear_canvas)
         self.button_clear.pack()
-        
+
         print("Press c to clear canvas")
-        self.root.bind("<c>", self.clear_canvas())
+        self.root.bind("<c>", lambda event: self.clear_canvas())
 
         self.image = Image.new("L", (self.canvas_size, self.canvas_size), 255)
         self.draw = ImageDraw.Draw(self.image)
 
         self.canvas.bind("<B1-Motion>", self.paint)
+
+        self.root.mainloop()
 
     def paint(self, event):
         x, y = event.x, event.y
@@ -237,10 +241,7 @@ if __name__ == "__main__":
     print("Training start: \n")
     neural_network = NeuralNetwork()
     neural_network.gradient_descent()
-    ui = UI(neural_network, True, 1)
-    ui.predict_loop()
-    ui.predict_multiple()
-    root = tk.Tk()
-    root.title("Detect Number")
-    app = PaintApp(root, neural_network)
-    root.mainloop()
+    #ui = UI(neural_network, True, 1)
+    #ui.predict_loop()
+    #ui.predict_multiple()
+    app = PaintApp(neural_network)
