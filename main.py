@@ -1,5 +1,3 @@
-import time
-
 import numpy as np
 import pandas as pd
 import tkinter as tk
@@ -50,22 +48,18 @@ class NeuralNetwork:
         self.alpha = 1
         self.iterations = 200
 
-
     def ReLU(self):
         self.A1 = np.maximum(self.Z1, 0)
 
-
     def softmax(self):
         self.A2 = np.exp(self.Z2) / sum(np.exp(self.Z2))
-
 
     def forward(self, X):
         Z1 = self.W1.dot(X) + self.b1
         A1 = np.maximum(Z1, 0)
         Z2 = self.W2.dot(A1) + self.b2
         A2 = np.exp(Z2) / np.sum(np.exp(Z2))
-        return np.argmax(A2, 0), A2
-
+        return np.argmax(A2, 0)[0], A2
 
     def forward_prop(self):
         self.Z1 = self.W1.dot(self.X_train) + self.b1
@@ -73,15 +67,12 @@ class NeuralNetwork:
         self.Z2 = self.W2.dot(self.A1) + self.b2
         self.softmax()
 
-
     def ReLU_deriv(self):
         return self.Z1 > 0
-
 
     def one_hot(self):
         self.one_hot_Y = np.zeros((self.Y_train.max() + 1, self.Y_train.size))
         self.one_hot_Y[self.Y_train, np.arange(self.Y_train.size)] = 1
-
 
     def backward_prop(self):
         self.one_hot()
@@ -92,21 +83,17 @@ class NeuralNetwork:
         self.dW1 = 1 / self.m * self.dZ1.dot(self.X_train.T)
         self.db1 = 1 / self.m * np.sum(self.dZ1)
 
-
     def update_params(self):
         self.W1 = self.W1 - self.alpha * self.dW1
         self.b1 = self.b1 - self.alpha * self.db1
         self.W2 = self.W2 - self.alpha * self.dW2
         self.b2 = self.b2 - self.alpha * self.db2
 
-
     def get_predictions(self):
         self.predictions = np.argmax(self.A2, 0)
 
-
     def get_accuracy(self):
         return np.sum(self.predictions == self.Y_train) / self.Y_train.size
-
 
     def gradient_descent(self):
         for i in range(self.iterations):
@@ -114,22 +101,19 @@ class NeuralNetwork:
             self.backward_prop()
             self.update_params()
             if i % 10 == 0:
-                print("Iteration: ", i)
+                print("Iteration: ", i+10)
                 self.get_predictions()
                 print(f"Accuracy {self.get_accuracy()*100}%")
-
 
     def make_predictions(self):
         self.forward_prop()
         self.get_predictions()
-
 
     def test_prediction(self, index: int):
         current_image = self.X_train[:, index, None]
         label = self.Y_train[index]
 
         prediction, _ = self.forward(current_image)
-        prediction = prediction[0]
         print("Prediction: ", prediction)
         print("Label:      ", label)
 
@@ -137,6 +121,7 @@ class NeuralNetwork:
 
 
 class UI:
+
     def __init__(self, neuralNetwork: NeuralNetwork, close_automatically: bool = False, wait_time: int = 2):
         self.neural_network = neuralNetwork
         self.close_automatically = close_automatically
@@ -202,6 +187,52 @@ class UI:
 
             current_image, _, _ = self.neural_network.test_prediction(index)
             self.show_prediction(current_image)
+
+
+class PaintApp:
+
+    def __init__(self, root, neuralNetwork: NeuralNetwork):
+        self.root = root
+        self.neural_network = neuralNetwork
+
+        self.canvas_size = 280
+        self.image_size = 28
+
+        self.canvas = tk.Canvas(root, width=self.canvas_size, height=self.canvas_size, bg="white")
+        self.canvas.pack()
+
+        self.button_clear = tk.Button(root, text="Clear", command=self.clear_canvas)
+        self.button_clear.pack()
+        
+        print("Press c to clear canvas")
+        self.root.bind("<c>", self.clear_canvas())
+
+        self.image = Image.new("L", (self.canvas_size, self.canvas_size), 255)
+        self.draw = ImageDraw.Draw(self.image)
+
+        self.canvas.bind("<B1-Motion>", self.paint)
+
+    def paint(self, event):
+        x, y = event.x, event.y
+        r = 10
+        self.canvas.create_oval(x-r, y-r, x+r, y+r, fill="black", outline="black")
+        self.draw.ellipse([x-r, y-r, x+r, y+r], fill=0)
+        self.predict_digit()
+
+    def clear_canvas(self):
+        self.canvas.delete("all")
+        self.image = Image.new("L", (self.canvas_size, self.canvas_size), 255)
+        self.draw = ImageDraw.Draw(self.image)
+
+    def predict_digit(self):
+        img_resized = self.image.resize((self.image_size, self.image_size))
+        img_inverted = ImageOps.invert(img_resized)
+
+        img_array = np.array(img_inverted).reshape(784, 1) / 255.
+
+        prediction, _ = self.neural_network.forward(img_array)
+        print("Prediction:", prediction)
+
 if __name__ == "__main__":
     print("Training start: \n")
     neural_network = NeuralNetwork()
@@ -209,3 +240,7 @@ if __name__ == "__main__":
     ui = UI(neural_network, True, 1)
     ui.predict_loop()
     ui.predict_multiple()
+    root = tk.Tk()
+    root.title("Detect Number")
+    app = PaintApp(root, neural_network)
+    root.mainloop()
