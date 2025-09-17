@@ -134,7 +134,78 @@ class NeuralNetwork:
         print("Label:      ", label)
 
         return current_image, prediction, label
+
+
+class UI:
+    def __init__(self, neuralNetwork: NeuralNetwork, close_automatically: bool = False, wait_time: int = 2):
+        self.neural_network = neuralNetwork
+        self.close_automatically = close_automatically
+        self.wait_time = wait_time
+
+    def show_prediction(self, current_image):
+        current_image = current_image.reshape((28, 28)) * 255
+        plt.gray()
+        plt.imshow(current_image, interpolation='nearest')
+        plt.show(block=False)
+        if self.close_automatically:
+            plt.pause(self.wait_time)
+            plt.close()
+
+    def predict_multiple(self):
+        total = input("Prediction count: ")
+        while not total.isdigit():
+            total = input("Prediction count: ")
+        total = int(total)
+        right = 0
+        wrong = 0
+        wrongs = []
+        print("Predictions \n")
+        for i in range(total):
+            _, prediction, label = self.neural_network.test_prediction(i)
+            if prediction == label:
+                print("Right predicted")
+                right += 1
+            else:
+                print("Wrong predicted")
+                wrong += 1
+                wrongs.append(i)
+            i += 1
+            print("Accuracy:", (right/i)*100, "%\n")
+
+        print("Wrong/Right/Total", wrong, "/", right, "/", total)
+        s = input("Do you want to see the wrong predictions: ")
+        if s == "1" or "Yes" or "Ja":
+            print("Wrong predictions")
+            for wrong_prediction in wrongs :
+                current_image, prediction, label = self.neural_network.test_prediction(wrong_prediction)
+                self.show_prediction(current_image)
+                print("Prediction: ", prediction[0])
+                print("Label:", label)
+
+    def predict_loop(self):
+        while True:
+            user_input = input("Gib eine Zahl für den Index ein (oder 'exit' zum Beenden): ")
+
+            if user_input.lower() == "exit":
+                print("Programm beendet.")
+                break
+
+            if not user_input.isdigit():
+                print("Bitte eine gültige Zahl eingeben!")
+                continue
+
+            index = int(user_input)
+
+            if index < 0 or index >= self.neural_network.X_train.shape[1]:
+                print(f"Bitte eine Zahl zwischen 0 und {self.neural_network.X_train.shape[1] - 1} eingeben!")
+                continue
+
+            current_image, _, _ = self.neural_network.test_prediction(index)
+            self.show_prediction(current_image)
 if __name__ == "__main__":
     print("Training start: \n")
     neural_network = NeuralNetwork()
     neural_network.gradient_descent()
+    ui = UI(neural_network, True, 1)
+    ui.predict_loop()
+    ui.predict_multiple()
