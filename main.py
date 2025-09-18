@@ -46,7 +46,7 @@ class NeuralNetwork:
         self.predictions = None
 
         self.alpha = 1
-        self.iterations = 200
+        self.iterations = 10000
 
     def ReLU(self):
         self.A1 = np.maximum(self.Z1, 0)
@@ -222,7 +222,9 @@ class PaintApp:
         self.button_clear.pack()
 
         print("Press c to clear canvas")
+        print("Press i to show the input")
         self.root.bind("<c>", lambda event: self.clear_canvas())
+        self.root.bind("<i>", lambda event: self.show_input())
 
         self.image = Image.new("L", (self.canvas_size, self.canvas_size), 255)
         self.draw = ImageDraw.Draw(self.image)
@@ -257,4 +259,7 @@ if __name__ == "__main__":
     neural_network.load_model()
     #neural_network.gradient_descent(10000)
     #neural_network.save_model("model.npz")
+    ui = UI(neural_network, True, 5)
+    ui.predict_loop()
+    ui.predict_multiple()
     app = PaintApp(neural_network)
