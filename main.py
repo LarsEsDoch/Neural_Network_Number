@@ -61,8 +61,8 @@ class NeuralNetwork:
         A2 = np.exp(Z2) / np.sum(np.exp(Z2))
         return np.argmax(A2, 0)[0], A2
 
-    def forward_prop(self):
-        self.Z1 = self.W1.dot(self.X_train) + self.b1
+    def forward_prop(self, X_train):
+        self.Z1 = self.W1.dot(X_train) + self.b1
         self.ReLU()
         self.Z2 = self.W2.dot(self.A1) + self.b2
         self.softmax()
@@ -95,9 +95,12 @@ class NeuralNetwork:
     def get_accuracy(self):
         return np.sum(self.predictions == self.Y_train) / self.Y_train.size
 
-    def gradient_descent(self):
-        for i in range(self.iterations):
-            self.forward_prop()
+    def gradient_descent(self, iterations: int = None):
+        if iterations is None:
+            iterations = self.iterations
+        print("Training start: \n")
+        for i in range(iterations):
+            self.forward_prop(self.X_train)
             self.backward_prop()
             self.update_params()
             if i % 10 == 0:
@@ -106,12 +109,12 @@ class NeuralNetwork:
                 print(f"Accuracy {self.get_accuracy()*100}%")
 
     def make_predictions(self):
-        self.forward_prop()
+        self.forward_prop(self.X_dev)
         self.get_predictions()
 
     def test_prediction(self, index: int):
-        current_image = self.X_train[:, index, None]
-        label = self.Y_train[index]
+        current_image = self.X_dev[:, index, None]
+        label = self.Y_dev[index]
 
         prediction, _ = self.forward(current_image)
         print("Prediction: ", prediction)
