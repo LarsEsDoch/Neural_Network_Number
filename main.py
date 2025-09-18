@@ -268,6 +268,13 @@ class PaintApp:
         prediction, _ = self.neural_network.forward(img_array)
         print("Prediction:", prediction)
 
+    def show_input(self):
+        img_array = self.preprocess_image()
+        current_image = img_array.reshape((28, 28)) * 255
+        plt.gray()
+        plt.imshow(current_image, interpolation='nearest')
+        plt.show(block=False)
+
 if __name__ == "__main__":
     neural_network = NeuralNetwork()
     neural_network.load_model()
