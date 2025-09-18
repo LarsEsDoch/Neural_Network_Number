@@ -245,12 +245,26 @@ class PaintApp:
         self.image = Image.new("L", (self.canvas_size, self.canvas_size), 255)
         self.draw = ImageDraw.Draw(self.image)
 
+    def preprocess_image(self):
+        img = self.image.convert("L")
+        img = ImageOps.invert(img)
+
+        bbox = img.getbbox()
+        if bbox:
+            img = img.crop(bbox)
+
+        img.thumbnail((20, 20), Image.Resampling.LANCZOS)
+
+        new_img = Image.new("L", (28, 28), 0)
+        x = (28 - img.size[0]) // 2
+        y = (28 - img.size[1]) // 2
+        new_img.paste(img, (x, y))
+
+        img_array = np.array(new_img).reshape(784, 1) / 255.
+        return img_array
+
     def predict_digit(self):
-        img_resized = self.image.resize((self.image_size, self.image_size))
-        img_inverted = ImageOps.invert(img_resized)
-
-        img_array = np.array(img_inverted).reshape(784, 1) / 255.
-
+        img_array = self.preprocess_image()
         prediction, _ = self.neural_network.forward(img_array)
         print("Prediction:", prediction)
 
