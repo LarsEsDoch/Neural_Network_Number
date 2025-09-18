@@ -122,6 +122,18 @@ class NeuralNetwork:
 
         return current_image, prediction, label
 
+    def save_model(self, path:str ="model_weights.npz"):
+        np.savez(path, W1=self.W1, b1=self.b1, W2=self.W2, b2=self.b2)
+        print("Model saved to", path)
+
+    def load_model(self, path:str ="model_weights.npz"):
+        data = np.load(path)
+        self.W1 = data["W1"]
+        self.b1 = data["b1"]
+        self.W2 = data["W2"]
+        self.b2 = data["b2"]
+        print("Model loaded from", path)
+
 
 class UI:
 
@@ -241,10 +253,8 @@ class PaintApp:
         print("Prediction:", prediction)
 
 if __name__ == "__main__":
-    print("Training start: \n")
     neural_network = NeuralNetwork()
-    neural_network.gradient_descent()
-    #ui = UI(neural_network, True, 1)
-    #ui.predict_loop()
-    #ui.predict_multiple()
+    neural_network.load_model()
+    #neural_network.gradient_descent(10000)
+    #neural_network.save_model("model.npz")
     app = PaintApp(neural_network)
