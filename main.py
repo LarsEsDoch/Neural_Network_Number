@@ -173,31 +173,31 @@ class UI:
             print("Accuracy:", (right/i)*100, "%\n")
 
         print("Wrong/Right/Total", wrong, "/", right, "/", total)
-        s = input("Do you want to see the wrong predictions: ")
-        if s == "1" or "Yes" or "Ja":
+        s = input("Do you want to see the wrong predictions (Y/n): ")
+        if s.lower() == "y":
             print("Wrong predictions")
             for wrong_prediction in wrongs :
                 current_image, prediction, label = self.neural_network.test_prediction(wrong_prediction)
                 self.show_prediction(current_image)
-                print("Prediction: ", prediction[0])
+                print("Prediction: ", prediction)
                 print("Label:", label)
 
     def predict_loop(self):
         while True:
-            user_input = input("Gib eine Zahl für den Index ein (oder 'exit' zum Beenden): ")
+            user_input = input(f"Please enter a number for the index (Max: {self.neural_network.X_dev.shape[1]}) (or 'exit' to end): ")
 
             if user_input.lower() == "exit":
-                print("Programm beendet.")
+                print("Programm endet.")
                 break
 
             if not user_input.isdigit():
-                print("Bitte eine gültige Zahl eingeben!")
+                print("Please enter a number!")
                 continue
 
             index = int(user_input)
 
-            if index < 0 or index >= self.neural_network.X_train.shape[1]:
-                print(f"Bitte eine Zahl zwischen 0 und {self.neural_network.X_train.shape[1] - 1} eingeben!")
+            if index < 0 or index >= self.neural_network.X_dev.shape[1]:
+                print(f"Enter a number between 0 and {self.neural_network.X_dev.shape[1] - 1}!")
                 continue
 
             current_image, _, _ = self.neural_network.test_prediction(index)
