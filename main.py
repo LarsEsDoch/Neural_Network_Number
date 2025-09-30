@@ -1,13 +1,22 @@
+import os
+import sys
+
 import numpy as np
 import pandas as pd
 import tkinter as tk
 from matplotlib import pyplot as plt
 from PIL import Image, ImageDraw, ImageOps
 
+
+def resource_path(relative_path: str) -> str:
+    if hasattr(sys, "_MEIPASS"):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
+
 class NeuralNetwork:
 
     def __init__(self):
-        self.data = pd.read_csv('./src/train.csv')
+        self.data = pd.read_csv(resource_path('./src/train.csv'))
         self.data = np.array(self.data)
 
         self.m, self.n = self.data.shape
@@ -122,11 +131,13 @@ class NeuralNetwork:
 
         return current_image, prediction, label
 
-    def save_model(self, path:str ="model_weights.npz"):
+    def save_model(self, path: str = "model_weights.npz"):
+        path = resource_path(path)
         np.savez(path, W1=self.W1, b1=self.b1, W2=self.W2, b2=self.b2)
         print("Model saved to", path)
 
-    def load_model(self, path:str ="model_weights.npz"):
+    def load_model(self, path: str = "model_weights.npz"):
+        path = resource_path(path)
         data = np.load(path)
         self.W1 = data["W1"]
         self.b1 = data["b1"]
@@ -280,7 +291,7 @@ if __name__ == "__main__":
     neural_network.load_model()
     #neural_network.gradient_descent(10000)
     #neural_network.save_model("model.npz")
-    ui = UI(neural_network, True, 5)
-    ui.predict_loop()
-    ui.predict_multiple()
+    #ui = UI(neural_network, True, 5)
+    #ui.predict_loop()
+    #ui.predict_multiple()
     app = PaintApp(neural_network)
