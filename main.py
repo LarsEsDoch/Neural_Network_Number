@@ -1,5 +1,6 @@
 import os
 import sys
+from tkinter import ttk
 
 import numpy as np
 import pandas as pd
@@ -226,6 +227,8 @@ class PaintApp:
         self.canvas_size = 280
         self.image_size = 28
 
+        self.last_x, self.last_y = None, None
+
         self.canvas = tk.Canvas(self.root, width=self.canvas_size, height=self.canvas_size, bg="white")
         self.canvas.pack()
 
@@ -241,20 +244,78 @@ class PaintApp:
         self.draw = ImageDraw.Draw(self.image)
 
         self.canvas.bind("<B1-Motion>", self.paint)
+        self.canvas.bind("<ButtonPress-1>", self.start_pos)
+        self.canvas.bind("<ButtonRelease-1>", self.reset_last_pos)
+
+        self.bar_labels = None
+        self.bars = None
+        self.bar_frames = None
+        self.label_pred = None
+        self.conf_window = None
+
+        self.create_confidence_window()
 
         self.root.mainloop()
+
+    def create_confidence_window(self):
+        self.conf_window = tk.Toplevel(self.root)
+        self.conf_window.title("Prediction Confidence")
+
+        self.label_pred = tk.Label(self.conf_window, text="Prediction: None", font=("Arial", 24))
+        self.label_pred.pack(pady=10)
+
+        self.bar_frames = []
+        self.bars = []
+        self.bar_labels = []
+
+        for i in range(10):
+            frame = tk.Frame(self.conf_window)
+            frame.pack(fill="x", padx=10, pady=2)
+
+            tk.Label(frame, text=str(i), width=2).pack(side="left")
+            bar = ttk.Progressbar(frame, length=200, maximum=1.0)
+            bar.pack(side="left", padx=5)
+            label = tk.Label(frame, text="0.00%")
+            label.pack(side="left")
+
+            self.bar_frames.append(frame)
+            self.bars.append(bar)
+            self.bar_labels.append(label)
+
+    def start_pos(self, event):
+        self.last_x, self.last_y = event.x, event.y
+
+    def reset_last_pos(self, event):
+        self.last_x, self.last_y = None, None
 
     def paint(self, event):
         x, y = event.x, event.y
         r = 10
-        self.canvas.create_oval(x-r, y-r, x+r, y+r, fill="black", outline="black")
-        self.draw.ellipse([x-r, y-r, x+r, y+r], fill=0)
+
+        if self.last_x is not None and self.last_y is not None:
+            self.canvas.create_line(self.last_x, self.last_y, x, y, fill="black", width=r * 2, capstyle=tk.ROUND,
+                                    smooth=True)
+
+            self.draw.line([self.last_x, self.last_y, x, y], fill=0, width=r * 2)
+        else:
+            self.canvas.create_oval(x - r, y - r, x + r, y + r, fill="black", outline="black")
+            self.draw.ellipse([x - r, y - r, x + r, y + r], fill=0)
+
+        self.last_x, self.last_y = x, y
+
         self.predict_digit()
 
     def clear_canvas(self):
         self.canvas.delete("all")
         self.image = Image.new("L", (self.canvas_size, self.canvas_size), 255)
         self.draw = ImageDraw.Draw(self.image)
+
+        self.label_pred.config(text=f"Prediction: None")
+
+        for i in range(10):
+            prob = 0
+            self.bars[i]['value'] = prob
+            self.bar_labels[i].config(text=f"{prob * 100:.2f}%")
 
     def preprocess_image(self):
         img = self.image.convert("L")
@@ -276,8 +337,14 @@ class PaintApp:
 
     def predict_digit(self):
         img_array = self.preprocess_image()
-        prediction, _ = self.neural_network.forward(img_array)
-        print("Prediction:", prediction)
+        prediction, probabilities = self.neural_network.forward(img_array)
+
+        self.label_pred.config(text=f"Prediction: {prediction}")
+
+        for i in range(10):
+            prob = probabilities[i, 0]
+            self.bars[i]['value'] = prob
+            self.bar_labels[i].config(text=f"{prob * 100:.2f}%")
 
     def show_input(self):
         img_array = self.preprocess_image()
